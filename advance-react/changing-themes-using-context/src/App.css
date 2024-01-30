@@ -1,0 +1,134 @@
+body {
+  margin: 0;
+}
+
+.current-theme {
+  text-transform: capitalize;
+}
+
+.theme-select {
+  width: 120px;
+  height: 40px;
+  font-size: large;
+}
+
+/* Light Theme */
+.light-header-container {
+  display: flex;
+  justify-content: space-around;
+  background-color: #cfcfcf;
+  color: black;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 65px;
+}
+
+.light-body-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: whitesmoke;
+  color: black;
+  font-size: 30px;
+  position: absolute;
+  top: 65px;
+  bottom: 2.5rem;
+  width: 100%;
+}
+
+.light-footer-container {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 2.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #cfcfcf;
+}
+
+/* Dark Theme */
+.dark-header-container {
+  display: flex;
+  justify-content: space-around;
+  background-color: black;
+  color: white;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 65px;
+}
+
+.dark-body-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: black;
+  color: white;
+  font-size: 30px;
+  position: absolute;
+  top: 65px;
+  bottom: 2.5rem;
+  width: 100%;
+}
+
+.dark-footer-container {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 2.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: black;
+  color: white;
+}
+
+/* Crazy Theme */
+.crazy-header-container {
+  display: flex;
+  justify-content: space-around;
+  background-color: lightcoral;
+  color: lightseagreen;
+  position: absolute;
+  bottom: 0; /* Position the header at the bottom */
+  width: 100%;
+  height: 65px;
+}
+
+.crazy-body-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: url(https://i.imgur.com/xdZzLIz.gif);
+  color: lightgreen;
+  font-size: 30px;
+  position: absolute;
+  top: 65px;
+  bottom: 4rem;
+  width: 100%;
+  justify-content: center;
+  font-family: 'Honk', system-ui;
+}
+
+.crazy-footer-container {
+  position: absolute;
+  top: 0; /* Position the footer at the top */
+  padding-bottom: .2%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: lightseagreen;
+  color: lightslategrey;
+}
+
+select {
+  cursor: pointer;
+  padding-left: .4%;
+}
+
+.theme-select option:nth-child(3) {
+  font-family: 'Honk', system-ui;
+}
