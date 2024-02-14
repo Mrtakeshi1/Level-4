@@ -5,158 +5,144 @@ function Search() {
     const [searchResults, setSearchResults] = useState([]);
     const [query, setQuery] = useState('');
     const [selectedResult, setSelectedResult] = useState(null);
-    const [images, setImages] = useState([]);
+    const [films, setFilms] = useState([]);
+    const [vehicles, setVehicles] = useState([]);
+    const [starships, setStarships] = useState([]);
+    const [homeworld, setHomeworld] = useState(null);
     const [suggestions, setSuggestions] = useState([]);
 
-    const fetchData = async () => {
-        console.log('Fetching data with query:', query);
-
-        const encodedParams = new URLSearchParams();
-        encodedParams.set('location_id', '45963');
-        encodedParams.set('language', 'en_US');
-        encodedParams.set('currency', 'USD');
-        encodedParams.set('offset', '0');
-        encodedParams.set('query', query);
-
-        const options = {
-            method: 'POST',
-            url: 'https://tourist-attraction.p.rapidapi.com/search',
-            headers: {
-                'content-type': 'application/x-www-form-urlencoded',
-                'X-RapidAPI-Key': '239cf70ab9msh849fd2eecedac3fp1bb065jsn91dc022d4804',
-                'X-RapidAPI-Host': 'tourist-attraction.p.rapidapi.com'
-            },
-            data: encodedParams,
-        };
-
+    const fetchSuggestions = async (value) => {
         try {
-            const response = await axios.request(options);
-            console.log('Response:', response.data);
-            setSearchResults(response.data);
+            const response = await axios.get(`https://swapi.dev/api/people/?search=${value}`);
+            const filteredSuggestions = response.data.results.filter(suggestion =>
+                suggestion.name.toLowerCase().startsWith(value.toLowerCase())
+            );
+            setSuggestions(filteredSuggestions);
+        } catch (error) {
+            console.error('Error fetching suggestions:', error);
+        }
+    };
+    
+
+    const fetchData = async () => {
+        try {
+            const response = await axios.get(`https://swapi.dev/api/people/?search=${query}`);
+            setSearchResults(response.data.results);
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     };
 
-    const fetchImages = async () => {
-        console.log('Fetching images for selected result:', selectedResult);
-
-        const encodedParams = new URLSearchParams();
-        encodedParams.set('location_id', selectedResult.location_id);
-        encodedParams.set('language', 'en_US');
-        encodedParams.set('currency', 'USD');
-        encodedParams.set('offset', '0');
-
-        const options = {
-            method: 'POST',
-            url: 'https://tourist-attraction.p.rapidapi.com/photos',
-            headers: {
-                'content-type': 'application/x-www-form-urlencoded',
-                'X-RapidAPI-Key': '239cf70ab9msh849fd2eecedac3fp1bb065jsn91dc022d4804',
-                'X-RapidAPI-Host': 'tourist-attraction.p.rapidapi.com'
-            },
-            data: encodedParams,
-        };
-
+    const fetchDetails = async (result) => {
         try {
-            const response = await axios.request(options);
-            console.log('Image Response:', response.data);
-            setImages(response.data);
+            const [filmsRes, vehiclesRes, starshipsRes, homeworldRes] = await Promise.all([
+                Promise.all(result.films.map(film => axios.get(film))),
+                Promise.all(result.vehicles.map(vehicle => axios.get(vehicle))),
+                Promise.all(result.starships.map(starship => axios.get(starship))),
+                axios.get(result.homeworld)
+            ]);
+            const filmsData = filmsRes.map(response => response.data);
+            const vehiclesData = vehiclesRes.map(response => response.data);
+            const starshipsData = starshipsRes.map(response => response.data);
+            const homeworldData = homeworldRes.data;
+            setFilms(filmsData);
+            setVehicles(vehiclesData);
+            setStarships(starshipsData);
+            setHomeworld(homeworldData);
         } catch (error) {
-            console.error('Error fetching images:', error);
+            console.error('Error fetching details:', error);
         }
     };
 
-    const fetchSuggestions = async (query) => {
-        const encodedParams = new URLSearchParams();
-        encodedParams.set('q', query);
-        encodedParams.set('language', 'en_US');
-
-        const options = {
-            method: 'POST',
-            url: 'https://tourist-attraction.p.rapidapi.com/typeahead',
-            headers: {
-                'content-type': 'application/x-www-form-urlencoded',
-                'X-RapidAPI-Key': '239cf70ab9msh849fd2eecedac3fp1bb065jsn91dc022d4804',
-                'X-RapidAPI-Host': 'tourist-attraction.p.rapidapi.com'
-            },
-            data: encodedParams,
-        };
-
-        try {
-            const response = await axios.request(options);
-            console.log('Suggestions:', response.data);
-            setSuggestions(response.data);
-        } catch (error) {
-            console.error('Error fetching suggestions:', error);
+    const handleInputChange = async (value) => {
+        setQuery(value);
+        if (value.trim() !== '') {
+            await fetchSuggestions(value);
+        } else {
+            setSuggestions([]);
         }
     };
 
-    const handleSearch = () => {
-        fetchData();
+    const handleSearch = async () => {
+        setSearchResults([]);
+        setSelectedResult(null);
+        setFilms([]);
+        setVehicles([]);
+        setStarships([]);
+        setHomeworld(null);
+        await fetchData();
     };
 
-    const handleKeyPress = (event) => {
-        if (event.key === 'Enter') {
-            fetchData();
-        }
-    };
-
-    const openMap = (latitude, longitude) => {
-        const mapUrl = `https://maps.google.com/?q=${latitude},${longitude}`;
-        window.open(mapUrl, '_blank');
-    };
-
-    const handleViewDetails = (result) => {
-        setSelectedResult(result);
-        fetchImages();
+    const handleSuggestionClick = async (suggestion) => {
+        setQuery(suggestion.name);
+        setSearchResults([]);
+        setSelectedResult(null);
+        setFilms([]);
+        setVehicles([]);
+        setStarships([]);
+        setHomeworld(null);
+        await fetchDetails(suggestion);
     };
 
     return (
-        <div className="services-container">
-            <h1 className="header-title">LandMarks</h1>
-            <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div className="services-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h1 className="header-title">Star Wars Characters</h1>
+            <div style={{ position: 'relative', textAlign: 'center' }}>
                 <input
                     type="text"
                     value={query}
-                    onChange={(e) => {
-                        setQuery(e.target.value);
-                        fetchSuggestions(e.target.value); // Fetch suggestions as the user types
-                    }}
-                    onKeyPress={handleKeyPress}
-                    style={{ marginRight: '10px' }}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    className="search-input" // Add new class here
+                    style={{ marginRight: '10px', width: '300px' }}
                 />
+                {suggestions.length > 0 && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', backgroundColor: 'white', border: '1px solid #ccc', zIndex: 999 }}>
+                        {suggestions.map((suggestion, index) => (
+                            <div key={index} onClick={() => handleSuggestionClick(suggestion)} style={{ padding: '5px', cursor: 'pointer' }}>
+                                {suggestion.name}
+                            </div>
+                        ))}
+                    </div>
+                )}
                 <button onClick={handleSearch}>Search</button>
             </div>
-            {/* Suggestions dropdown */}
-            <ul>
-                {suggestions.map((suggestion, index) => (
-                    <li key={index} onClick={() => setQuery(suggestion)}>{suggestion}</li>
-                ))}
-            </ul>
-            {Array.isArray(searchResults) && searchResults.map((result, index) => (
+            {searchResults.map((result, index) => (
                 <div key={index} className="result-container">
-                    <div className="image-box">
-                        <img src={result.image_url} alt={result.name} style={{ maxWidth: '100%' }} />
-                    </div>
                     <div className="details">
                         <h2>{result.name}</h2>
-                        <p>{result.description}</p>
-                        <button onClick={() => openMap(result.latitude, result.longitude)}>Get Directions</button>
-                        <button onClick={() => handleViewDetails(result)}>View Details</button>
+                        <button onClick={() => fetchDetails(result)}>View Details</button>
                     </div>
                 </div>
             ))}
             {selectedResult && (
                 <div className="details">
                     <h2>{selectedResult.name}</h2>
-                    <p>{selectedResult.description}</p>
-                    <div className="images">
-                        {images.map((image, index) => (
-                            <img key={index} src={image.url} alt={`${selectedResult.name} - Image ${index + 1}`} style={{ maxWidth: '100%' }} />
+                    <p>Height: {selectedResult.height}</p>
+                    <p>Mass: {selectedResult.mass}</p>
+                    <p>Hair Color: {selectedResult.hair_color}</p>
+                    <p>Skin Color: {selectedResult.skin_color}</p>
+                    <p>Eye Color: {selectedResult.eye_color}</p>
+                    <p>Birth Year: {selectedResult.birth_year}</p>
+                    <p>Gender: {selectedResult.gender}</p>
+                    <p>Homeworld: {homeworld ? homeworld.name : 'Loading...'}</p>
+                    <h3>Films:</h3>
+                    <ul>
+                        {films.map((film, index) => (
+                            <li key={index}>{film.title}</li>
                         ))}
-                    </div>
-                    <button onClick={() => openMap(selectedResult.latitude, selectedResult.longitude)}>Get Directions</button>
+                    </ul>
+                    <h3>Vehicles:</h3>
+                    <ul>
+                        {vehicles.map((vehicle, index) => (
+                            <li key={index}>{vehicle.name}</li>
+                        ))}
+                    </ul>
+                    <h3>Starships:</h3>
+                    <ul>
+                        {starships.map((starship, index) => (
+                            <li key={index}>{starship.name}</li>
+                        ))}
+                    </ul>
                 </div>
             )}
         </div>

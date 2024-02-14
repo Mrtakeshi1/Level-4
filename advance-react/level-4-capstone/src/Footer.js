@@ -1,7 +1,7 @@
 function Footer(){
     return(
         <div className="footer">
-            <h3>@Losturistas</h3>
+            <h3>@Star-Wars-Guru-2024</h3>
         </div>
     )
 }
